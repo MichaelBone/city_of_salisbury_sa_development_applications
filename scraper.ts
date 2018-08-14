@@ -161,7 +161,8 @@ async function main() {
     // Prepare to process multiple pages of results.  Determine the page count from the first page.
 
     let pageNumber = 1;
-    let pageCount = $("a.otherpagenumber").get().length + 1;
+    let pageCountText = $("#ctl00_MainBodyContent_mPagingControl_pageNumberLabel").text();
+    let pageCount = Math.max(1, Number(pageCountText.match(/[0-9]+$/)[0])) || 1;  // "|| 1" ensures that NaN becomes 1
 
     do {
         // Parse a page of development applications.
@@ -173,9 +174,9 @@ async function main() {
             let tableCells = $(tableRow).children("td").get();
             if (tableCells.length >= 4) {
                 let applicationNumber = $(tableCells[0]).text().trim()
-                let receivedDate = moment($(tableCells[1]).text().trim(), "D/MM/YYYY", true);  // allows the leading zero of the day to be omitted
-                let reason = $(tableCells[2]).text().trim();
-                let address = $(tableCells[3]).text().trim();
+                let receivedDate = moment($(tableCells[4]).text().trim(), "D/MM/YYYY", true);  // allows the leading zero of the day to be omitted
+                let reason = $(tableCells[1]).text().trim();
+                let address = $(tableCells[2]).text().trim();
 
                 if (/[0-9]+\/[0-9]+.*/.test(applicationNumber) && receivedDate.isValid()) {
                     await insertRow(database, {
