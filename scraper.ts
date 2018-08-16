@@ -13,10 +13,11 @@ import * as moment from "moment";
 
 sqlite3.verbose();
 
-const DevelopmentApplicationsDefaultUrl = "https://eservices.salisbury.sa.gov.au/ePathway/Production/Web/default.aspx";
-const DevelopmentApplicationsEnquiryListsUrl = "https://eservices.salisbury.sa.gov.au/ePathway/Production/Web/GeneralEnquiry/EnquiryLists.aspx";
-const DevelopmentApplicationsEnquirySearchUrl = "https://eservices.salisbury.sa.gov.au/ePathway/Production/Web/GeneralEnquiry/EnquirySearch.aspx";
-const DevelopmentApplicationsEnquirySummaryViewUrl = "https://eservices.salisbury.sa.gov.au/ePathway/Production/Web/GeneralEnquiry/EnquirySummaryView.aspx";
+const DevelopmentApplicationsBaseUrl = "https://eservices.salisbury.sa.gov.au/ePathway/Production/Web";
+const DevelopmentApplicationsDefaultUrl = DevelopmentApplicationsBaseUrl + "/default.aspx";
+const DevelopmentApplicationsEnquiryListsUrl = DevelopmentApplicationsBaseUrl + "/GeneralEnquiry/EnquiryLists.aspx";
+const DevelopmentApplicationsEnquirySearchUrl = DevelopmentApplicationsBaseUrl + "/GeneralEnquiry/EnquirySearch.aspx";
+const DevelopmentApplicationsEnquirySummaryViewUrl = DevelopmentApplicationsBaseUrl + "/GeneralEnquiry/EnquirySummaryView.aspx";
 const CommentUrl = "mailto:city@salisbury.sa.gov.au";
 
 // Sets up an sqlite database.
@@ -178,11 +179,11 @@ async function main() {
                 let reason = $(tableCells[1]).text().trim();
                 let address = $(tableCells[2]).text().trim();
 
-                if (/[0-9]+\/[0-9]+.*/.test(applicationNumber) && receivedDate.isValid()) {
+                if (/[0-9]+\/[0-9]+.*/.test(applicationNumber) && receivedDate.isValid() && address !== "") {
                     await insertRow(database, {
                         applicationNumber: applicationNumber,
                         address: address,
-                        reason: reason,
+                        reason: ((reason === "") ? "NO DESCRIPTION PROVIDED" : reason),
                         informationUrl: DevelopmentApplicationsDefaultUrl,
                         commentUrl: CommentUrl,
                         scrapeDate: moment().format("YYYY-MM-DD"),
@@ -213,7 +214,7 @@ async function main() {
         $ = cheerio.load(body);
         eventValidation = $("input[name='__EVENTVALIDATION']").val();
         viewState = $("input[name='__VIEWSTATE']").val();
-    } while (pageCount === null || pageNumber <= pageCount || pageNumber >= 100)  // enforce a hard limit of 100 pages (as a safety precaution)
+    } while (pageCount === null || pageNumber <= pageCount || pageNumber >= 50)  // enforce a hard limit of 50 pages (as a safety precaution)
 }
 
 main().then(() => console.log("Complete.")).catch(error => console.error(error));
